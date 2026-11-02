@@ -1,0 +1,136 @@
+[
+  {
+    "id": "TC1",
+    "ac": "AC1",
+    "text": "Given no X-Linear-Api-Key header, When any tool is called, Then the server returns 401 naming the required header and makes no call to Linear",
+    "type": "auto",
+    "tests": ["tests/test_middleware.py::test_missing_header_returns_401_and_no_upstream_call"]
+  },
+  {
+    "id": "TC2",
+    "ac": "AC2",
+    "text": "Given a valid API key, When linear_list_teams is called, Then the response contains the teams visible to that key, each with id/key/name",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_list_teams_returns_id_key_name"]
+  },
+  {
+    "id": "TC3",
+    "ac": "AC2",
+    "text": "Given a workspace with more teams than the default page size, When linear_list_teams is called with no cursor, Then has_more is true and next_cursor is set; calling again with that cursor returns the next page",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_list_teams_pagination_cursor_continues"]
+  },
+  {
+    "id": "TC4",
+    "ac": "AC3",
+    "text": "Given a valid API key and a team_id, When linear_list_issues is called with that team filter, Then every returned issue belongs to that team",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_list_issues_team_filter_scopes_results"]
+  },
+  {
+    "id": "TC5",
+    "ac": "AC4",
+    "text": "Given a known issue identifier, When linear_get_issue is called, Then the response includes title, description, state, assignee, labels, project, team, and URL",
+    "type": "manual",
+    "steps": [
+      "Obtain a Linear personal API key for a test workspace with at least one issue",
+      "Call linear_get_issue with that issue's identifier (e.g. ENG-1) via the running MCP server (curl POST /mcp, tools/call)",
+      "Inspect the JSON result"
+    ],
+    "expect": "Result includes non-null title, description, state.name, assignee (or null if unassigned), labels (array, possibly empty), project (or null), team.key, and a url starting with https://linear.app/",
+    "result": "untested",
+    "evidence": "needs a real vendor account — no Linear test workspace/API key was available during design; dev leg to run and attach evidence"
+  },
+  {
+    "id": "TC6",
+    "ac": "AC5",
+    "text": "Given an issue identifier that does not exist, When linear_get_issue is called, Then the response is a structured not_found error, not a 500 and not an unhandled exception",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_get_issue_unknown_identifier_returns_not_found_envelope"]
+  },
+  {
+    "id": "TC7",
+    "ac": "AC6",
+    "text": "Given a valid API key, a team_id, and a title, When linear_create_issue is called, Then the response contains a new id/identifier/url, and a subsequent linear_get_issue on that identifier shows the submitted title",
+    "type": "manual",
+    "steps": [
+      "In a disposable test team in a Linear test workspace, call linear_create_issue with team_id and a distinctive title",
+      "Read back the returned identifier",
+      "Call linear_get_issue with that identifier"
+    ],
+    "expect": "linear_create_issue returns a non-null id/identifier/url; linear_get_issue on that identifier returns the exact title submitted",
+    "result": "untested",
+    "evidence": "needs a real vendor account — write-path test against PROD-equivalent Linear API must use a disposable test workspace/team, not run blind; dev leg to execute with evidence (response bodies)"
+  },
+  {
+    "id": "TC8",
+    "ac": "AC6",
+    "text": "Given linear_create_issue is called without a team_id, When the call is made, Then the response is a structured invalid_argument error",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_create_issue_missing_team_id_returns_invalid_argument"]
+  },
+  {
+    "id": "TC9",
+    "ac": "AC7",
+    "text": "Given an existing issue, When linear_update_issue is called with a new state_id, Then the response shows the new state, and a subsequent linear_get_issue confirms it",
+    "type": "manual",
+    "steps": [
+      "Using the issue created in TC7 (or another disposable test issue), call linear_update_issue with a different valid state_id for that team",
+      "Call linear_get_issue on the same identifier"
+    ],
+    "expect": "linear_update_issue's response state matches the requested state; linear_get_issue confirms the same state afterward",
+    "result": "untested",
+    "evidence": "needs a real vendor account; dev leg to execute with evidence"
+  },
+  {
+    "id": "TC10",
+    "ac": "AC8",
+    "text": "Given an existing issue, When linear_create_comment is called with a body, Then the response contains a comment id, and the comment is visible on that issue in Linear",
+    "type": "manual",
+    "steps": [
+      "Using a disposable test issue, call linear_create_comment with a distinctive body text",
+      "Open the issue in the Linear web app (or re-query comments via the API) and look for the comment"
+    ],
+    "expect": "linear_create_comment returns a non-null comment id; the comment with the exact body text is visible on the issue",
+    "result": "untested",
+    "evidence": "needs a real vendor account; dev leg to execute with evidence"
+  },
+  {
+    "id": "TC11",
+    "ac": "AC9",
+    "text": "Given Linear responds 429 with Retry-After, When any list/get tool call hits this mid-request, Then the service retries honoring the delay, and if still rate-limited the final response is a structured rate_limited error",
+    "type": "auto",
+    "tests": [
+      "tests/test_tools.py::test_rate_limit_retries_then_succeeds_after_retry_after",
+      "tests/test_tools.py::test_rate_limit_exhausted_returns_rate_limited_envelope"
+    ]
+  },
+  {
+    "id": "TC12",
+    "ac": "AC10",
+    "text": "Given two requests are issued concurrently to the running HTTP server with two different X-Linear-Api-Key values pointed at two different (mocked) Linear accounts, When both are in flight, Then each response contains only its own account's data",
+    "type": "auto",
+    "tests": ["tests/test_middleware.py::test_concurrent_requests_with_different_keys_do_not_cross_contaminate"]
+  },
+  {
+    "id": "TC13",
+    "ac": "AC11",
+    "text": "Given the container has no Linear credential environment variable set at all, When a request omits the header, Then the server still 401s rather than falling back to any operator credential",
+    "type": "auto",
+    "tests": ["tests/test_middleware.py::test_no_env_fallback_for_http_transport"]
+  },
+  {
+    "id": "TC14",
+    "ac": "AC3",
+    "text": "Given a team with zero issues, When linear_list_issues is called with that team filter, Then the response is an empty issues array with has_more false, not an error",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_list_issues_empty_team_returns_empty_array_not_error"]
+  },
+  {
+    "id": "TC15",
+    "ac": "AC7",
+    "text": "Given linear_update_issue is called with an out-of-range priority value, When the call is made, Then the response is a structured invalid_argument error and the issue is left unchanged",
+    "type": "auto",
+    "tests": ["tests/test_tools.py::test_update_issue_invalid_priority_returns_invalid_argument"]
+  }
+]
