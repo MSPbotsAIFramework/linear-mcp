@@ -4,7 +4,7 @@
     "ac": "AC1",
     "text": "Given no X-Linear-Api-Key header, When any tool is called, Then the server returns 401 naming the required header and makes no call to Linear",
     "type": "auto",
-    "tests": ["tests/test_middleware.py::test_missing_header_returns_401_and_no_upstream_call"]
+    "tests": ["tests/test_middleware.py::test_missing_header_returns_401_with_required_headers_listed"]
   },
   {
     "id": "TC2",
@@ -117,7 +117,7 @@
     "ac": "AC11",
     "text": "Given the container has no Linear credential environment variable set at all, When a request omits the header, Then the server still 401s rather than falling back to any operator credential",
     "type": "auto",
-    "tests": ["tests/test_middleware.py::test_no_env_fallback_for_http_transport"]
+    "tests": ["tests/test_tools.py::test_no_env_fallback_for_http_transport"]
   },
   {
     "id": "TC14",
