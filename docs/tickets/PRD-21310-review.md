@@ -23,3 +23,23 @@ Verdict: changes requested
 - README's "MSPbots Connector" section (lines 1-77) is byte-for-byte identical to `~/.claude/skills/vendor-mcp-development/reference/readme-connector-section.md` and sits before the Header credential table, satisfying SOP §0.5/§14.
 - Credential handling (`X-Linear-Api-Key` only, `ContextVar` + `finally` reset, no env-var fallback on the HTTP path, no shared mutable per-tenant state), error envelope shape, and the AC10 concurrency test (`tests/test_middleware.py::test_concurrent_requests_with_different_keys_do_not_cross_contaminate`, asserted against the real ASGI HTTP stack, not just middleware internals) all match the tech design and the SOP's three iron laws.
 - Scope: this is a from-scratch build in a repo with no prior code; nothing outside the design's change list was touched.
+
+### Fixes (round 1)
+
+Both must-fix items addressed on `dev/PRD-21310`, no other changes made.
+
+1. **docs/tickets/PRD-21310.md:316** — removed the Chinese phrase "复用与清理" from the Reuse & cleanup paragraph (the English section name already identifies it, so no transliteration was needed). Also corrected the same Self-test section's No-Chinese scan row, which had falsely reported "no output": re-ran `grep -rnP '[\x{4e00}-\x{9fff}]' --exclude-dir=.git --exclude-dir=.venv .` and recorded the real result — zero hits outside this review record (which necessarily quotes the Chinese phrase and SOP text as evidence for this very finding). Commit `1406a35`.
+2. **docs/tickets/PRD-21310.ac.json** — corrected both wrong test citations:
+   - TC1: `tests/test_middleware.py::test_missing_header_returns_401_and_no_upstream_call` (does not exist) → `tests/test_middleware.py::test_missing_header_returns_401_with_required_headers_listed` (exists, matches AC1).
+   - TC13: `tests/test_middleware.py::test_no_env_fallback_for_http_transport` (wrong file) → `tests/test_tools.py::test_no_env_fallback_for_http_transport` (correct file, confirmed at `tests/test_tools.py:318`).
+   Commit `1406a35`.
+
+Re-run after both fixes (commit `1406a35`, no code changed — doc/ledger only):
+- `uv run pytest -q`: 33 passed (unchanged).
+- Both corrected test IDs individually resolve and pass (`uv run pytest -q tests/test_middleware.py::test_missing_header_returns_401_with_required_headers_listed tests/test_tools.py::test_no_env_fallback_for_http_transport`: 2 passed).
+- `uv run ruff check .` / `uv run ruff format --check .`: clean.
+- No-Chinese scan: zero hits outside this review record.
+
+Doc header's `Status: frozen @ <sha>` self-reference re-pinned to `1406a35` in a follow-up one-line commit (`25e9b95`), same pattern as round 0's `a5119f6`.
+
+Docker build / container smoke / credential-isolation / concurrency gates were not re-run — this round changed only `docs/tickets/PRD-21310.md` and `docs/tickets/PRD-21310.ac.json`, no application code, so the round-0 results for those gates (already verified independently above) still hold.
