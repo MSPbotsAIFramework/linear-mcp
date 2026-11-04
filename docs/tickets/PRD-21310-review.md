@@ -43,3 +43,22 @@ Re-run after both fixes (commit `1406a35`, no code changed — doc/ledger only):
 Doc header's `Status: frozen @ <sha>` self-reference re-pinned to `1406a35` in a follow-up one-line commit (`25e9b95`), same pattern as round 0's `a5119f6`.
 
 Docker build / container smoke / credential-isolation / concurrency gates were not re-run — this round changed only `docs/tickets/PRD-21310.md` and `docs/tickets/PRD-21310.ac.json`, no application code, so the round-0 results for those gates (already verified independently above) still hold.
+
+## Round 2 · 2026-11-04 · reviewed dev/PRD-21310 @ a646b3a (base main @ f143805)
+
+Verdict: approved
+
+### Verification of Round 1 fixes
+
+Diff scope for this round: `git diff 97843ef...a646b3a` touches only `docs/tickets/PRD-21310-review.md` (Round 1 findings/fixes, appended by the dev leg), `docs/tickets/PRD-21310.ac.json` (2-line citation fix), and `docs/tickets/PRD-21310.md` (Self-test row correction, Reuse & cleanup heading, frozen-sha pin). No application code changed.
+
+1. **Chinese phrase removed** — `grep -rnP '[\x{4e00}-\x{9fff}]' --exclude-dir=.git --exclude-dir=.venv .` re-run independently on `a646b3a`: the only hits are inside `docs/tickets/PRD-21310-review.md`'s own Round 1 finding text (which necessarily quotes the phrase as evidence for that finding). Zero hits in `docs/tickets/PRD-21310.md` or anywhere else in the tree. Confirmed fixed.
+2. **Both test citations corrected and verified independently**:
+   - TC1 now cites `tests/test_middleware.py::test_missing_header_returns_401_with_required_headers_listed` — confirmed the function is defined at that exact path (`grep -n "def test_missing_header_returns_401_with_required_headers_listed" tests/test_middleware.py` → line 36); the old, nonexistent name does not appear anywhere in `tests/`.
+   - TC13 now cites `tests/test_tools.py::test_no_env_fallback_for_http_transport` — confirmed defined at `tests/test_tools.py:318`.
+   - Swept all 12 `tests` entries in `docs/tickets/PRD-21310.ac.json` (not just the two that were flagged): every cited `file::test_name` resolves to a `def` in that exact file, each exactly once. No further citation errors found.
+3. **Gates re-run independently on `a646b3a`**: `uv run pytest -q` → 33 passed; `uv run ruff check .` → all checks passed; `uv run ruff format --check .` → 21 files already formatted. Matches the Self-test's re-run claim.
+
+No new findings. Both Round 1 must-fix items are genuinely resolved, not just reworded; nothing else in the narrow doc-only diff introduces a problem.
+
+Status: frozen @ a646b3a
