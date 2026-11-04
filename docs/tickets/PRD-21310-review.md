@@ -28,7 +28,7 @@ Verdict: changes requested
 
 Both must-fix items addressed on `dev/PRD-21310`, no other changes made.
 
-1. **docs/tickets/PRD-21310.md:316** — removed the Chinese phrase "复用与清理" from the Reuse & cleanup paragraph (the English section name already identifies it, so no transliteration was needed). Also corrected the same Self-test section's No-Chinese scan row, which had falsely reported "no output": re-ran `grep -rnP '[\x{4e00}-\x{9fff}]' --exclude-dir=.git --exclude-dir=.venv .` and recorded the real result — zero hits outside this review record (which necessarily quotes the Chinese phrase and SOP text as evidence for this very finding). Commit `1406a35`.
+1. **docs/tickets/PRD-21310.md:316** — removed the Chinese phrase quoted in finding 1 above from the Reuse & cleanup paragraph (the English section name already identifies it, so no transliteration was needed). Also corrected the same Self-test section's No-Chinese scan row, which had falsely reported "no output": re-ran `grep -rnP '[\x{4e00}-\x{9fff}]' --exclude-dir=.git --exclude-dir=.venv .` and recorded the real result — zero hits outside this review record (which necessarily quotes the phrase and SOP text as evidence for this very finding). Commit `1406a35`.
 2. **docs/tickets/PRD-21310.ac.json** — corrected both wrong test citations:
    - TC1: `tests/test_middleware.py::test_missing_header_returns_401_and_no_upstream_call` (does not exist) → `tests/test_middleware.py::test_missing_header_returns_401_with_required_headers_listed` (exists, matches AC1).
    - TC13: `tests/test_middleware.py::test_no_env_fallback_for_http_transport` (wrong file) → `tests/test_tools.py::test_no_env_fallback_for_http_transport` (correct file, confirmed at `tests/test_tools.py:318`).
